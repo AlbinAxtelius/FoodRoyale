@@ -1,7 +1,8 @@
 body {
     margin: 0;
     max-height: 100vh;
-    overflow-y: hidden
+    overflow-y: hidden;
+    background-color: #ECF0F1;
 }
 
 div {
@@ -14,4 +15,15 @@ div {
 
 #gameCanvas {
     border: 2px lightgray dashed
+}
+
+h1 {
+
+    font-family: verdana;
+
+}
+
+canvas {
+    display: block;
+	margin: 0 auto;
 }
