@@ -5,13 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="stylesheet" href="style.css" />
-    <title>CANVAS ROG STRIX</title>
+    <title>FoodRoyale</title>
   </head>
   <body>
-    <div>
-      <h1>FoodRoyale</h1>
+    <div class="gameArea">
+      <canvas id="uiCanvas" height="50" width="650"></canvas>
       <canvas id="gameCanvas" height="650" width="650"></canvas>
-      <canvas id="uiCanvas" height ="200" width="650"></canvas>
+      <!-- <div id=”statsPanel”></div> -->
+    </div>
+    <div class="scoreArea">
+      <h2>Scores</h2>
+      <ul>
+        <li>Johan Lind</li>
+        <li>André Grodan Edetun Falk</li>
+        <li>Albin Axtelius</li>
+      </ul>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script src="index.js"></script>

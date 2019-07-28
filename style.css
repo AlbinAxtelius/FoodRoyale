@@ -1,29 +1,38 @@
-body {
-    margin: 0;
-    max-height: 100vh;
-    overflow-y: hidden;
-    background-color: #ECF0F1;
+@font-face {
+  font-family: Batman;
+  src: url("./fonts/batmfa__.ttf") format("truetype");
 }
 
-div {
-    flex-direction: column;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+body {
+  font-family: Batman;
+
+  margin: 0;
+  max-height: 100vh;
+  overflow-y: hidden;
+  background-color: #ecf0f1;
+  display: grid;
+  grid-template-columns: 1fr 654px 1fr;
+  grid-template-areas: ". game score";
+  margin-top: 15vh;
+}
+
+div.gameArea {
+  flex-direction: column;
+  height: 100vh;
+  display: flex;
+  grid-area: game
+}
+
+div.scoreArea {
+    grid-area: score;
+    margin-left: 14px;
+}
+
+ul {
+    padding: 0;
+    list-style: none;
 }
 
 #gameCanvas {
-    border: 2px lightgray dashed
-}
-
-h1 {
-
-    font-family: verdana;
-
-}
-
-canvas {
-    display: block;
-	margin: 0 auto;
+  border: 2px lightgray dashed;
 }

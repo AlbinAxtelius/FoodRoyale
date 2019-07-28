@@ -1,14 +1,14 @@
-const socket = io("192.168.1.12:5000");
+const socket = io("192.168.1.11:5000");
 const players = {};
 
 let up = false,
   right = false,
   down = false,
   left = false,
-  speed = 15,
+  speed = 10,
   health = 100,
   alive = true;
-const canvas = document.querySelector("canvas");
+const canvas = document.querySelector("#gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const UIcanvas = document.querySelector("#uiCanvas");
@@ -18,11 +18,21 @@ socket.on("playerDisconnect", playerId => {
   delete players[playerId];
 });
 
+socket.on("foodEaten", data => {
+  foodPosition = data.newPosition;
+});
+
+socket.on("playerConnected", socketId => {
+  players[socketId] = { x: 650 / 2, y: 650 / 2, playerId: socketId };
+});
+
 socket.on("players", player => {
-  if (players[player.player]) {
-    players[player.player].xPos = player.xPos;
-    players[player.player].yPos = player.yPos;
-  } else players[player.player] = player;
+  console.log(player);
+  if (players[player.playerId]) {
+    players[player.playerId].playerId = player.playerId;
+    players[player.playerId].x = player.x;
+    players[player.playerId].y = player.y;
+  } else players[player.playerId] = player;
 });
 
 setInterval(() => {
@@ -30,14 +40,38 @@ setInterval(() => {
 }, 1000 / 60);
 
 const position = {
-  xPos: 500,
-  yPos: 500
+  x: canvas.width / 2,
+  y: canvas.height / 2
 };
 
 let foodPosition = {
-  x: 200,
-  y: 200
+  x: 600,
+  y: 600
 };
+
+socket.on("updateHealth", playerHealth => {
+  for (const key in playerHealth) {
+    if (playerHealth.hasOwnProperty(key)) {
+      if (socket.id == key) {
+        health = playerHealth[key].health;
+        if (playerHealth[key].dead) alive = false;
+      } else {
+        if (playerHealth[key].dead) delete players[key];
+      }
+    }
+  }
+});
+
+socket.on("onConnect", data => {
+  foodPosition = data.foodPosition;
+
+  for (const key in data.players) {
+    if (data.players.hasOwnProperty(key)) {
+      players[key] = data.players[key];
+    }
+  }
+  socket.off("onConnect");
+});
 
 socket.on("randomFoodPos", newPos => {
   console.log(newPos);
@@ -51,15 +85,7 @@ const update = () => {
   ctx.strokeStyle = "black";
 
   if (alive) {
-    ctx.ellipse(
-      position.xPos,
-      position.yPos,
-      25,
-      25,
-      Math.PI / 4,
-      0,
-      2 * Math.PI
-    );
+    ctx.ellipse(position.x, position.y, 25, 25, Math.PI / 4, 0, 2 * Math.PI);
     ctx.stroke();
   }
   ctx.fillStyle = "black";
@@ -69,8 +95,8 @@ const update = () => {
     if (players.hasOwnProperty(key)) {
       ctx.beginPath();
       ctx.ellipse(
-        players[key].xPos,
-        players[key].yPos,
+        players[key].x,
+        players[key].y,
         25,
         25,
         Math.PI / 4,
@@ -78,44 +104,44 @@ const update = () => {
         2 * Math.PI
       );
       ctx.fillText(
-        players[key].player.substring(0, 3).toUpperCase(),
-        players[key].xPos,
-        players[key].yPos + 45
+        players[key].playerId.substring(0, 3).toUpperCase(),
+        players[key].x,
+        players[key].y + 45
       );
       ctx.stroke();
     }
   }
-  health -= 0.15;
   updateHealth();
   drawFood(foodPosition);
+  drawPlayerScore("0");
   calcFood();
 
   if (up) {
-    if (position.yPos > 0) {
-      position.yPos -= speed;
+    if (position.y > 0) {
+      position.y -= speed;
     } else {
-      position.yPos = 0;
+      position.y = 0;
     }
   }
   if (down) {
-    if (position.yPos < canvas.height) {
-      position.yPos += speed;
+    if (position.y < canvas.height) {
+      position.y += speed;
     } else {
-      position.yPos = canvas.height;
+      position.y = canvas.height;
     }
   }
   if (right) {
-    if (position.xPos < canvas.width) {
-      position.xPos += speed;
+    if (position.x < canvas.width) {
+      position.x += speed;
     } else {
-      position.xPos = canvas.width;
+      position.x = canvas.width;
     }
   }
   if (left) {
-    if (position.xPos > 0) {
-      position.xPos -= speed;
+    if (position.x > 0) {
+      position.x -= speed;
     } else {
-      position.xPos = 0;
+      position.x = 0;
     }
   }
   if (left || right || up || down) hasMoved();
@@ -138,8 +164,8 @@ const clamp = (val, min, max) => {
 
 const calcFood = () => {
   let distanceToFood = Math.sqrt(
-    Math.pow(position.xPos - foodPosition.x, 2) +
-      Math.pow(position.yPos - foodPosition.y, 2)
+    Math.pow(position.x - foodPosition.x, 2) +
+      Math.pow(position.y - foodPosition.y, 2)
   );
 
   if (distanceToFood < 45) {
@@ -160,17 +186,23 @@ const drawFood = ({ x, y }) => {
 
 const drawHungerBar = val => {
   ctxUI.fillStyle = "#34495E";
-  ctxUI.fillRect(UIcanvas.width * 0.2 - 5, 50, UIcanvas.width * 0.6 + 10, 55);
+  ctxUI.fillRect(0, 15, UIcanvas.width, 30);
 
   ctxUI.fillStyle = "#2ECC71";
-
   ctxUI.fillRect(
-    UIcanvas.width * 0.2,
-    54,
-    UIcanvas.width * 0.6 * (val / 100),
-    46
+    5,
+    20,
+    UIcanvas.width * (val / 100) - 10,
+    20
   );
 };
+
+const drawPlayerScore = val => {
+  // ctxUI.font = "30px Arial";
+  // ctxUI.fillStyle = "lightgray";
+  // ctxUI.fillText("Score : 0", 5, 35);
+};
+
 const hasMoved = () => {
   socket.emit("movement", position);
 };
@@ -203,21 +235,3 @@ document.addEventListener("keyup", e => {
     left = false;
   }
 });
-
-
-function resize() {
-	// Our canvas must cover full height of screen
-	// regardless of the resolution
-	var height = window.innerHeight;
-	
-	// So we need to calculate the proper scaled width
-	// that should work well with every resolution
-	var ratio = canvas.width/canvas.height;
-	var width = height * ratio;
-	
-	canvas.style.width = width+'px';
-	canvas.style.height = height+'px';
-}
-
-window.addEventListener('load', resize, false);
-window.addEventListener('resize', resize, false);
