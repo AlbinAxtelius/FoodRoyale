@@ -1,0 +1,17 @@
+body {
+    margin: 0;
+    max-height: 100vh;
+    overflow-y: hidden
+}
+
+div {
+    flex-direction: column;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    border: 2px lightgray dashed
+}
